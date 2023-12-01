@@ -2,9 +2,9 @@ name: MyShuttle CI-CD
 
 on:
     # push:
-    #     branches: ['s']
+    #     branches: ['main']
     # pull_request:
-    #     branches: ['s']
+    #     branches: ['main']
     workflow_dispatch:
  
 
@@ -101,7 +101,7 @@ jobs:
     
         # On push to main, build or change infrastructure according to Terraform configuration files
         - name: Terraform Apply
-          if: github.ref == 'refs/heads/s' && github.event_name == 'push'
+          if: github.ref == 'refs/heads/main' && github.event_name == 'push'
           env:
             ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
             ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
@@ -112,13 +112,13 @@ jobs:
         # login to azure cli
         - name: Azure login
           uses: azure/login@v1
-          if: github.ref == 'refs/heads/s' && github.event_name == 'push'
+          if: github.ref == 'refs/heads/main' && github.event_name == 'push'
           with:
             creds: '{"clientId":"${{ secrets.ARM_CLIENT_ID }}","clientSecret":"${{ secrets.ARM_CLIENT_SECRET }}","subscriptionId":"${{ secrets.ARM_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.ARM_TENANT_ID }}"}'
   
         - name: Azure CLI script
           uses: azure/CLI@v1
-          if: github.ref == 'refs/heads/s' && github.event_name == 'push'
+          if: github.ref == 'refs/heads/main' && github.event_name == 'push'
           id: AZURE_WEBAPP_PUBLISH_PROFILE
           with:
             azcliversion: latest
@@ -128,7 +128,7 @@ jobs:
     deployToAzure:
       name: 🚀 Deploy to Prod
       runs-on: ubuntu-latest 
-      if: github.ref == 'refs/heads/s' && github.event_name == 'push'
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       environment: 
        name: deploy
        url: https://myshuttle-webapp.azurewebsites.net/myshuttledev
