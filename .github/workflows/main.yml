@@ -40,6 +40,10 @@ jobs:
                     ./target/*.war
                     *.sql
 
+    code_scanning:
+        needs: 'Build'
+        uses: ./.github/workflows/codeql.yml
+
     terraform:
         name: 'Terraform'
         needs: 'Build'
