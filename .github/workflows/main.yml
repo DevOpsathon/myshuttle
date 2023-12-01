@@ -41,8 +41,8 @@ jobs:
                     *.sql
 
     code_scanning:
-        needs: 'Build'
-        uses: DevOpsathon/myshuttle/.github/workflows/codeql.yml@main
+        needs: [Build]
+        uses: ./.github/workflows/codeql.yml
 
     terraform:
         name: 'Terraform'
