@@ -1,10 +1,10 @@
 name: MyShuttle CI-CD
 
 on:
-    # push:
-    #     branches: ['main']
-    # pull_request:
-    #     branches: ['main']
+    push:
+        branches: ['main']
+    pull_request:
+        branches: ['main']
     workflow_dispatch:
  
 
@@ -68,10 +68,10 @@ jobs:
         - name: Setup Terraform
           uses: hashicorp/setup-terraform@v3
 
-        - name: Terraform fmt
-          id: fmt
-          run: terraform fmt -check
-          continue-on-error: true
+        # - name: Terraform fmt
+        #   id: fmt
+        #   run: terraform fmt -check
+        #   continue-on-error: true
     
         # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
         - name: Terraform Init
