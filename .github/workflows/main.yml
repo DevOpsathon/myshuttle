@@ -46,7 +46,7 @@ jobs:
 
     terraform:
         name: 'Terraform'
-        needs: 'Build'
+        needs: ['Build', 'code_scanning']
         # if: github.event_name == 'push' && contains(github.event.paths, './terraform/')
         runs-on: ubuntu-latest
         outputs:
