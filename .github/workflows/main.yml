@@ -42,11 +42,11 @@ jobs:
 
     code_scanning:
         needs: 'Build'
-        uses: 'DevOpsathon/myshuttle/.github/workflows/codeql.yml@main'
+        uses: ./.github/workflows/codeql.yml
 
     terraform:
         name: 'Terraform'
-        needs: 'Build'
+        needs: ['Build', 'code_scanning']
         # if: github.event_name == 'push' && contains(github.event.paths, './terraform/')
         runs-on: ubuntu-latest
         outputs:
