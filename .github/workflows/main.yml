@@ -42,7 +42,7 @@ jobs:
 
     code_scanning:
         name: Analyze
-
+        needs: 'Build'
         runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
         timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
         permissions:
