@@ -23,25 +23,32 @@ public class DataAccess
 	// Some database-specific details we'll need
 	private static final String DB_DRIVER = "com.mysql.jdbc.Driver";
 	private static final String DB_URL = "jdbc:mysql://CNS-232:3306/alm";
-	private static final String DB_USER = "Admin01";
-	private static final String DB_PASS = "Admin01";
+	private static final String DB_USER = "SanketD";
+	private static final String DB_PASS = "Canarys@123";
 	
 	private static Connection theConnection;
 	static {
 		try {
 			// Bootstrap driver into JVM
 			Class.forName(DB_DRIVER);
-
+			
 			String conStr = System.getenv("MYSQLCONNSTR_MyShuttleDb");
+			System.out.print("Get Env "+conStr);
 			if (conStr == null || conStr.trim().length() == 0) {
 				theConnection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+				System.out.print("Get Env "+theConnection);
+				System.out.print("get connection 1");
 			} else {
 				theConnection = DriverManager.getConnection(conStr);
+				System.out.print("Get Env "+theConnection);
+				System.out.print("get connection 2");
 			}
 		}
 		catch (Exception ex) {
 			// Eh.... just give up
             ex.printStackTrace();
+            System.out.print(ex);
+            System.out.print("Hii DB_Error");
 			throw new ExceptionInInitializerError(ex.toString());
 		}
 	}
