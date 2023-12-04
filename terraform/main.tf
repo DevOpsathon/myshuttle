@@ -87,7 +87,7 @@ resource "azurerm_mysql_firewall_rule" "firewall_rule" {
   resource_group_name = azurerm_resource_group.myshuttle_rg.name
   server_name         = azurerm_mysql_server.myshuttle_mysqlServer.name
   start_ip_address    = "0.0.0.0"
-  end_ip_address      = "0.0.0.0"
+  end_ip_address      = "255.255.255.255"
 
   depends_on = [azurerm_mysql_server.myshuttle_mysqlServer]
 }
