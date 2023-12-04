@@ -37,7 +37,7 @@ variable "java_server" {
 
 variable "java_server_version" {
   type    = string
-  default = "9.0"
+  default = "8.5"
 }
 
 variable "java_version" {
