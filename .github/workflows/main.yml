@@ -59,7 +59,6 @@ jobs:
         - name: Checkout repository
           uses: actions/checkout@v3
     
-        # Initializes the CodeQL tools for scanning.
         - name: Initialize CodeQL
           uses: github/codeql-action/init@v2
           with:
@@ -76,14 +75,10 @@ jobs:
     terraform:
         name: 'Terraform'
         needs: ['Build', 'code_scanning']
-        # if: github.event_name == 'push' && contains(github.event.paths, './terraform/')
         runs-on: ubuntu-latest
         outputs:
-            # AZURE_CREDENTIAL: ${{ steps.AZURE_CREDENTIAL.outputs.AZ_CRED }}
             PUBLISH_PROFILE: ${{ steps.AZURE_WEBAPP_PUBLISH_PROFILE.outputs.AZ_PUBLISH_PROFILE }} 
-    
-        # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
-        # Set the working directory to main for the config files
+
         defaults:
           run:
             shell: bash
@@ -91,29 +86,22 @@ jobs:
 
         permissions:
             pull-requests: write
-    
-        steps:
-        # Checkout the repository to the GitHub Actions runner
-        - name: Checkout
-          uses: actions/checkout@v4.1.1
-    
-        # Install the preferred version of Terraform CLI 
-        - name: Setup Terraform
-          uses: hashicorp/setup-terraform@v3
 
-        # - name: Terraform fmt
-        #   id: fmt
-        #   run: terraform fmt -check
-        #   continue-on-error: true
-    
-        # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-        - name: Terraform Init
-          id: init
-          env:
+        env:
             ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
             ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
             ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
             ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+    
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v4.1.1
+    
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v3
+    
+        - name: Terraform Init
+          id: init
           run: terraform init
 
         - name: Terraform Validate
@@ -123,23 +111,12 @@ jobs:
         # Run a terraform plan for pull requests only
         - name: Terraform Plan
           id: plan
-          env:
-            ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-            ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-            ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-            ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           if: github.event_name == 'pull_request'
           run: terraform plan -no-color
           continue-on-error: true
     
-        # On push to main, build or change infrastructure according to Terraform configuration files
         - name: Terraform Apply
           if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-          env:
-            ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-            ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-            ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-            ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           run: terraform apply -auto-approve
 
         # login to azure cli
