@@ -40,6 +40,24 @@ jobs:
                     ./target/*.war
                     *.sql
 
+            - name: Publish Unit Test Results
+              uses: mikepenz/action-junit-report@v4
+              if: success() || failure()
+              with:
+                report_paths: './target/surefire-reports/TEST-*.xml'
+            - name: Step Summary for JUnit Tests
+              uses: actions/github-script@v7
+              with:
+                script: |
+                  const fs = require('fs');
+                  let summary = '';
+                  const testResults = fs.readdirSync('target/surefire-reports').filter(fn => fn.startsWith('TEST-') && fn.endsWith('.xml'));
+                  for (const fn of testResults) {
+                    const content = fs.readFileSync(`target/surefire-reports/${fn}`, 'utf8');
+                    // parse content and create summary
+                  }
+                  console.log(summary);
+
     code_scanning:
         name: Analyze
         needs: 'Build'
