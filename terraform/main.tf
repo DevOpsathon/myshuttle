@@ -2,17 +2,11 @@
 # LOCALS
 ##################################################################################
 
-
 locals {
   resource_group_name   = "${var.naming_prefix}-rg"
   app_service_plan_name = "${var.naming_prefix}-asp"
   app_service_name      = "${var.naming_prefix}-webapp"
   mysql_server_name     = "${var.naming_prefix}-mysqlserver"
-}
-
-resource "random_integer" "name_suffix" {
-  min = 10000
-  max = 99999
 }
 
 ##################################################################################
@@ -61,6 +55,10 @@ resource "azurerm_linux_web_app" "myshuttle-webapp" {
   depends_on = [azurerm_mysql_server.myshuttle_mysqlServer, azurerm_mysql_database.alm]
 }
 
+##################################################################################
+# AZURE MYSQL SERVER FOR DB
+##################################################################################
+
 resource "azurerm_mysql_server" "myshuttle_mysqlServer" {
   name                = local.mysql_server_name
   resource_group_name = azurerm_resource_group.myshuttle_rg.name
@@ -87,7 +85,7 @@ resource "azurerm_mysql_firewall_rule" "firewall_rule" {
   resource_group_name = azurerm_resource_group.myshuttle_rg.name
   server_name         = azurerm_mysql_server.myshuttle_mysqlServer.name
   start_ip_address    = "0.0.0.0"
-  end_ip_address      = "255.255.255.255"
+  end_ip_address      = "0.0.0.0"
 
   depends_on = [azurerm_mysql_server.myshuttle_mysqlServer]
 }
