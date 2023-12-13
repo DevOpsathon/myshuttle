@@ -186,9 +186,9 @@ jobs:
             
         - uses: azure/mysql@v1.3.0
           with:
-            server-name: myshuttle-mysqlserver.mysql.database.azure.com
-            username: myshuttle@myshuttle-mysqlserver
-            password: P@ssw0rd@123
+            server-name: ${{ secrets.SERVER_NAME }}
+            username: ${{ secrets.SQL_USERNAME }}
+            password: ${{ secrets.SQL_PASSWORD }}
             # This is optional, you want to connect directly
             database: alm
             sql-file: './CreateMYSQLDB.sql'
