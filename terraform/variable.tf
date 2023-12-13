@@ -9,7 +9,7 @@ variable "location" {
 
 variable "naming_prefix" {
   type    = string
-  default = "myshuttle"
+  default = "myshuttlejava"
 }
 
 variable "asp_tier" {
