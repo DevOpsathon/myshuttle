@@ -180,7 +180,7 @@ jobs:
         - name: Azure WebApp
           uses: Azure/webapps-deploy@v3
           with:
-            app-name: myshuttle-webapp
+            app-name: myshuttlejava-webapp
             package: ./target/
             publish-profile: ${{ needs.terraform.outputs.PUBLISH_PROFILE }}
             
