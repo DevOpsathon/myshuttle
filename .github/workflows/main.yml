@@ -104,7 +104,7 @@ jobs:
         defaults:
           run:
             shell: bash
-            working-directory: "./terraform"
+            working-directory: ${{ vars.tf_actions_working_dir }}
 
         permissions:
             pull-requests: write
@@ -165,7 +165,7 @@ jobs:
         
               </details>
         
-              *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+              *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ vars.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
         
               github.rest.issues.createComment({
                 issue_number: context.issue.number,
