@@ -98,13 +98,13 @@ jobs:
         name: 'Terraform'
         needs: ['Build', 'code_scanning']
         runs-on: ubuntu-latest
-        outputs:
-            PUBLISH_PROFILE: ${{ steps.AZURE_WEBAPP_PUBLISH_PROFILE.outputs.AZ_PUBLISH_PROFILE }} 
+        # outputs:
+        #     PUBLISH_PROFILE: ${{ steps.AZURE_WEBAPP_PUBLISH_PROFILE.outputs.AZ_PUBLISH_PROFILE }} 
 
         defaults:
           run:
             shell: bash
-            working-directory: ./terraform
+            working-directory: ${{ vars.tf_actions_working_dir }}
 
         permissions:
             pull-requests: write
@@ -134,28 +134,79 @@ jobs:
         - name: Terraform Plan
           id: plan
           if: github.event_name == 'pull_request'
-          run: terraform plan -no-color
+          run: terraform plan -no-color 2>/dev/null
           continue-on-error: true
+
+        - name: Comment Terraform Plan Result on PR
+          uses: actions/github-script@v7
+          if: github.event_name == 'pull_request'
+          with:
+            script: |
+              const output = `Terraform Plan Output:\n\`\`\`\n${{ steps.plan.outputs.stdout }}\n\`\`\``;
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              });
+
+        # - uses: actions/github-script@v7
+        #   if: github.event_name == 'pull_request'
+        #   env:
+        #     PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        #   with:
+        #     github-token: ${{ secrets.GITHUB_TOKEN }}
+        #     script: |
+        #       console.error = function() {};
+        #       const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+        #       #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+        #       #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+        #       <details><summary>Validation Output</summary>
+        
+        #       \`\`\`\n
+        #       ${{ steps.validate.outputs.stdout }}
+        #       \`\`\`
+        
+        #       </details>
+        
+        #       #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+        
+        #       <details><summary>Show Plan</summary>
+        
+        #       \`\`\`\n
+        #       ${process.env.PLAN}
+        #       \`\`\`
+        
+        #       </details>
+        
+        #       *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ vars.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+        
+        #       github.rest.issues.createComment({
+        #         issue_number: context.issue.number,
+        #         owner: context.repo.owner,
+        #         repo: context.repo.repo,
+        #         body: output
+        #       })
     
         - name: Terraform Apply
           if: github.ref == 'refs/heads/main' && github.event_name == 'push'
           run: terraform apply -auto-approve
 
         # login to azure cli
-        - name: Azure login
-          uses: azure/login@v1
-          if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-          with:
-            creds: '{"clientId":"${{ secrets.ARM_CLIENT_ID }}","clientSecret":"${{ secrets.ARM_CLIENT_SECRET }}","subscriptionId":"${{ secrets.ARM_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.ARM_TENANT_ID }}"}'
+        # - name: Azure login
+        #   uses: azure/login@v1
+        #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        #   with:
+        #     creds: '{"clientId":"${{ secrets.ARM_CLIENT_ID }}","clientSecret":"${{ secrets.ARM_CLIENT_SECRET }}","subscriptionId":"${{ secrets.ARM_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.ARM_TENANT_ID }}"}'
   
-        - name: Azure CLI script
-          uses: azure/CLI@v1
-          if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-          id: AZURE_WEBAPP_PUBLISH_PROFILE
-          with:
-            azcliversion: latest
-            inlineScript: |
-              echo "AZ_PUBLISH_PROFILE=$(az webapp deployment list-publishing-profiles -g 'myshuttle-rg' -n 'myshuttle-webapp' --xml)" >> $GITHUB_OUTPUT
+        # - name: Azure CLI script
+        #   uses: azure/CLI@v1
+        #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        #   id: AZURE_WEBAPP_PUBLISH_PROFILE
+        #   with:
+        #     azcliversion: latest
+        #     inlineScript: |
+        #       echo "AZ_PUBLISH_PROFILE=$(az webapp deployment list-publishing-profiles -g 'myshuttle-rg' -n 'myshuttle-webapp' --xml)" >> $GITHUB_OUTPUT
     
     deployToAzure:
       name: 🚀 Deploy to Prod
@@ -163,7 +214,7 @@ jobs:
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       environment: 
        name: deploy
-       url: https://myshuttle-webapp.azurewebsites.net/myshuttledev
+       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
       needs: ['Build', 'terraform']
 
       steps:
@@ -172,17 +223,27 @@ jobs:
           with:
             name: "myArtifact_${{ needs.Build.outputs.set_date }}"
 
-        - name: Azure login
-          uses: azure/login@v1
+        - name: Azure CLI script
+          uses: azure/CLI@v1
+          if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+          id: AZURE_WEBAPP_PUBLISH_PROFILE
           with:
-            creds: '{"clientId":"${{ secrets.ARM_CLIENT_ID }}","clientSecret":"${{ secrets.ARM_CLIENT_SECRET }}","subscriptionId":"${{ secrets.ARM_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.ARM_TENANT_ID }}"}'
+            azcliversion: latest
+            inlineScript: |
+              echo "PUBLISH_PROFILE=$(az webapp deployment list-publishing-profiles -g 'myshuttle-rg' -n 'myshuttle-webapp' --xml)" >> $GITHUB_OUTPUT
+
+        # - name: Azure login
+        #   uses: azure/login@v1
+        #   with:
+        #     creds: '{"clientId":"${{ secrets.ARM_CLIENT_ID }}","clientSecret":"${{ secrets.ARM_CLIENT_SECRET }}","subscriptionId":"${{ secrets.ARM_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.ARM_TENANT_ID }}"}'
 
         - name: Azure WebApp
           uses: Azure/webapps-deploy@v3
+          id: deploy-to-webapp
           with:
             app-name: myshuttlejava-webapp
             package: ./target/
-            publish-profile: ${{ needs.terraform.outputs.PUBLISH_PROFILE }}
+            publish-profile: ${{ steps.AZURE_WEBAPP_PUBLISH_PROFILE.outputs.PUBLISH_PROFILE }}
             
         - uses: azure/mysql@v1.3.0
           with:
